@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: waymate-config
+    namespace: waymate
+data:
+    REDIS_URL: redis://redis:6379
+    BETTER_AUTH_URL: http://localhost:8080
+    WEB_ORIGIN: http://localhost:8080
+    LOG_LEVEL: info
+    # /health reports this value, so a rollout is visible in the response.
+    RENDER_GIT_COMMIT: v1

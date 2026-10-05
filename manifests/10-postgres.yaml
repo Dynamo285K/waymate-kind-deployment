@@ -1,0 +1,49 @@
+# ponytail: no volume, so data is lost when the pod restarts. Real setup: StatefulSet + PersistentVolumeClaim, or managed RDS.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: postgres
+    namespace: waymate
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: postgres
+    template:
+        metadata:
+            labels:
+                app: postgres
+        spec:
+            containers:
+                - name: postgres
+                  image: postgres:18
+                  ports:
+                      - containerPort: 5432
+                  env:
+                      - name: POSTGRES_USER
+                        value: postgres
+                      - name: POSTGRES_DB
+                        value: waymate
+                      - name: POSTGRES_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: waymate-secrets
+                                key: POSTGRES_PASSWORD
+                  readinessProbe:
+                      exec:
+                          command: ["pg_isready", "-U", "postgres"]
+                      periodSeconds: 5
+                  resources:
+                      requests: { cpu: 100m, memory: 128Mi }
+                      limits: { memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: postgres
+    namespace: waymate
+spec:
+    selector:
+        app: postgres
+    ports:
+        - port: 5432

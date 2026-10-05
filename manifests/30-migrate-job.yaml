@@ -1,0 +1,21 @@
+# Runs Drizzle migrations once. A Job's pod template is immutable: delete the Job (or rename it) to run it again.
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: migrate
+    namespace: waymate
+spec:
+    backoffLimit: 2
+    template:
+        spec:
+            restartPolicy: Never
+            containers:
+                - name: migrate
+                  image: waymate-migrate:v1
+                  command: ["bun", "run", "--cwd", "apps/api", "db:migrate"]
+                  env:
+                      - name: DATABASE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: waymate-secrets
+                                key: DATABASE_URL

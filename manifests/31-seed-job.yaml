@@ -1,0 +1,21 @@
+# Dev fixtures (admin@example.com / admin1234, drivers, rides). Run after the migrate Job; seed.ts refuses NODE_ENV=production.
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: seed
+    namespace: waymate
+spec:
+    backoffLimit: 0
+    template:
+        spec:
+            restartPolicy: Never
+            containers:
+                - name: seed
+                  image: waymate-migrate:v1
+                  command: ["bun", "run", "--cwd", "apps/api", "seed"]
+                  # seed.ts imports config/env.ts, which validates the same variables as the API.
+                  envFrom:
+                      - configMapRef:
+                            name: waymate-config
+                      - secretRef:
+                            name: waymate-secrets
