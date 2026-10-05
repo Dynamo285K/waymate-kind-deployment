@@ -7,18 +7,25 @@ This is a learning project. Production Waymate runs on Render (API) and Cloudfla
 ## Architecture
 
 ```
-Browser ── http://localhost:8080 (kubectl port-forward)
-             │
-        Service web ──► web pods ×2 (nginx, non-root)
-                           ├── /api/auth/*  → Service api  (prefix kept, Better Auth)
-                           ├── /api/*       → Service api  (prefix stripped)
-                           └── /*           → index.html   (SPA fallback)
-                                   │
-                        Service api ──► api pods ×3 (Bun, non-root)
-                                         ├── Service postgres ──► postgres pod
-                                         └── Service redis    ──► redis pod
+Browser
+  │  http://localhost:8080 (kubectl port-forward)
+  ▼
+Service web
+  ▼
+web pods ×2 (nginx, non-root)
+  ├── /*            → index.html (SPA fallback)
+  ├── /api/auth/*   → Service api, prefix kept (Better Auth)
+  └── /api/*        → Service api, prefix stripped
+                         │
+  ┌──────────────────────┘
+  ▼
+Service api
+  ▼
+api pods ×3 (Bun, non-root)
+  ├──► Service postgres ──► postgres pod
+  └──► Service redis    ──► redis pod
 
-Jobs: migrate (Drizzle migrations), seed (dev fixtures)
+Jobs (run once): migrate (Drizzle migrations), seed (dev fixtures)
 ```
 
 The cluster has one control-plane node and two workers, so replicas spread across nodes.
